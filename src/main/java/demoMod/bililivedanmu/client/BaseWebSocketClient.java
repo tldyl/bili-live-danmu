@@ -2,6 +2,7 @@ package demoMod.bililivedanmu.client;
 
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.math.MathUtils;
 import com.megacrit.cardcrawl.actions.AbstractGameAction;
 import com.megacrit.cardcrawl.dungeons.AbstractDungeon;
@@ -16,6 +17,7 @@ import org.java_websocket.handshake.ServerHandshake;
 import java.io.IOException;
 import java.net.URI;
 import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.function.Consumer;
 
@@ -26,7 +28,7 @@ public class BaseWebSocketClient extends WebSocketClient {
 
     public BaseWebSocketClient(URI serverUri, int roomId) {
         super(serverUri);
-        System.out.println(serverUri.toString());
+        System.out.println(serverUri);
         this.roomId = roomId;
     }
 
@@ -90,39 +92,45 @@ public class BaseWebSocketClient extends WebSocketClient {
                         if (BiliLiveDanmu.printLog) {
                             System.out.println(jsonObject);
                         }
-                        String cmd = (String) jsonObject.get("cmd");
+                        String cmd = jsonObject.getString("cmd");
                         switch (cmd) {
                             case "DANMU_MSG":
-                                JSONArray jsonArray = (JSONArray) jsonObject.get("info");
+                                JSONArray jsonArray = jsonObject.getJSONArray("info");
+                                String extraString = jsonArray.getJSONArray(0).getJSONObject(15).getString("extra");
+                                JSONObject extra = JSONObject.parseObject(extraString);
+                                Color color = new Color();
+                                Color.rgb888ToColor(color, extra.getIntValue("color"));
+                                color.a = 1.0F;
+                                final Color finalColor = color;
                                 if (BiliLiveDanmu.showVfx) {
                                     BiliLiveDanmu.addToBot(new AbstractGameAction() {
                                         @Override
                                         public void update() {
-                                            AbstractDungeon.topLevelEffects.add(new DanmuEffect((String)jsonArray.get(1), MathUtils.random(19)));
+                                            AbstractDungeon.topLevelEffects.add(new DanmuEffect(jsonArray.getString(1), MathUtils.random(19), finalColor));
                                             isDone = true;
                                         }
                                     });
                                 }
                                 if (this.messageCallback != null) {
-                                    this.messageCallback.onDanmu((String)((JSONArray)jsonArray.get(2)).get(1), (String)jsonArray.get(1));
+                                    this.messageCallback.onDanmu(jsonArray.getJSONArray(2).getString(1), jsonArray.getString(1), color);
                                 }
                                 break;
                             case "WATCHED_CHANGE":
-                                JSONObject data = (JSONObject) jsonObject.get("data");
+                                JSONObject data = jsonObject.getJSONObject("data");
                                 if (this.messageCallback != null) {
-                                    this.messageCallback.watchedChange((int) data.get("num"));
+                                    this.messageCallback.watchedChange(data.getInteger("num"));
                                 }
                                 break;
                             case "SEND_GIFT":
-                                data = (JSONObject) jsonObject.get("data");
+                                data = jsonObject.getJSONObject("data");
                                 if (this.messageCallback != null) {
-                                    this.messageCallback.onGift((String) data.get("uname"), (String) data.get("giftName"), (String) data.get("action"), (int) data.get("num"));
+                                    this.messageCallback.onGift(data.getString("uname"), data.getString("giftName"), data.getString("action"), data.getInteger("num"));
                                 }
                                 break;
                             case "INTERACT_WORD":
-                                data = (JSONObject) jsonObject.get("data");
+                                data = jsonObject.getJSONObject("data");
                                 if (this.messageCallback != null && BiliLiveDanmu.showEnterRoom) {
-                                    this.messageCallback.enterRoom((String) data.get("uname"));
+                                    this.messageCallback.enterRoom(data.getString("uname"));
                                 }
                                 break;
                         }
@@ -158,9 +166,9 @@ public class BaseWebSocketClient extends WebSocketClient {
                 byte[] dataArray = data.array();
                 String body;
                 if (ver == 2) { //有压缩
-                    body = new String(ZLibUtils.decompress(new ByteBufferInputStream(data)), "UTF-8");
+                    body = new String(ZLibUtils.decompress(new ByteBufferInputStream(data)), StandardCharsets.UTF_8);
                 } else { //无压缩
-                    body = new String(dataArray, "UTF-8");
+                    body = new String(dataArray, StandardCharsets.UTF_8);
                 }
                 String[] group = body.split("[\\x00-\\x1f]+");
                 for (String s : group) {

@@ -20,10 +20,10 @@ public class MessageEffect extends AbstractGameEffect {
     public float x;
     public float y;
 
-    public MessageEffect(String msg, int slot) {
+    public MessageEffect(String msg, int slot, Color color) {
         this.msg = msg;
         this.slot = slot;
-        this.color = Color.WHITE.cpy();
+        this.color = color;
         this.color.a = 0.0F;
     }
 

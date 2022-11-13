@@ -1,6 +1,7 @@
 package demoMod.bililivedanmu.relics;
 
 import basemod.abstracts.CustomRelic;
+import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.evacipated.cardcrawl.mod.stslib.relics.ClickableRelic;
@@ -71,8 +72,8 @@ public class Danmu extends CustomRelic implements ClickableRelic, MessageCallbac
     }
 
     @Override
-    public void onDanmu(String user, String msg) {
-        messageBox.addDanmu(user + ":", msg);
+    public void onDanmu(String user, String msg, Color dmColor) {
+        messageBox.addDanmu(user + ":", msg, dmColor);
     }
 
     @Override

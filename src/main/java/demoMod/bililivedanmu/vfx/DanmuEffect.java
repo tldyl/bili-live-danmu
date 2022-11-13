@@ -14,9 +14,10 @@ public class DanmuEffect extends AbstractGameEffect {
     private float y;
     private boolean visible = false;
 
-    public DanmuEffect(String msg, int lineNum) {
+    public DanmuEffect(String msg, int lineNum, Color color) {
         this.msg = msg;
         this.lineNum = lineNum;
+        this.color = color;
     }
 
     @Override
@@ -27,7 +28,7 @@ public class DanmuEffect extends AbstractGameEffect {
             this.width = FontHelper.getWidth(FontHelper.menuBannerFont, this.msg, 1.0F);
             visible = true;
         }
-        this.x -= (Gdx.graphics.getDeltaTime() + this.width / 15000.0F) * Gdx.graphics.getWidth() / 7.0F;
+        this.x -= (Gdx.graphics.getDeltaTime() + this.width / 18000.0F) * Gdx.graphics.getWidth() / 10.0F;
         if (visible && this.x + this.width < 0) {
             this.isDone = true;
         }
@@ -38,7 +39,7 @@ public class DanmuEffect extends AbstractGameEffect {
         if (visible) {
             float t = FontHelper.menuBannerFont.getScaleX();
             FontHelper.menuBannerFont.getData().setScale(1.0F);
-            FontHelper.renderFontLeft(sb, FontHelper.menuBannerFont, this.msg, this.x, this.y + Gdx.graphics.getHeight() / 40.0F, Color.WHITE);
+            FontHelper.renderFontLeft(sb, FontHelper.menuBannerFont, this.msg, this.x, this.y + Gdx.graphics.getHeight() / 40.0F, this.color);
             sb.flush();
             FontHelper.menuBannerFont.getData().setScale(t);
         }

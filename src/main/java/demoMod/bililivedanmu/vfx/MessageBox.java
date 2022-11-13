@@ -31,6 +31,8 @@ public class MessageBox {
     private Hitbox hb;
 
     private boolean draggingMode = false;
+    private boolean locked = false;
+    private Color bgColor;
     private float dragFadeOut = 0.0F;
     private int fadeOutX;
     private int fadeOutY;
@@ -38,11 +40,12 @@ public class MessageBox {
     public MessageBox() {
         if (bg == null) {
             Pixmap pixmap = new Pixmap(1, 1, Pixmap.Format.RGBA8888);
-            Color c = Color.BLACK.cpy();
+            Color c = Color.WHITE.cpy();
             c.a = 0.25F;
             pixmap.setColor(c);
             pixmap.fill();
             bg = new Texture(pixmap);
+            bgColor = Color.BLACK.cpy();
         }
         x = 0;
         y = Gdx.graphics.getHeight() * 0.1F;
@@ -64,9 +67,17 @@ public class MessageBox {
         }
         hb.update();
         if (this.hb != null) {
-            if (this.hb.hovered && InputHelper.isMouseDown && !draggingMode) {
+            if (this.hb.hovered && InputHelper.isMouseDown && !draggingMode && !locked) {
                 draggingMode = true;
                 dragFadeOut = 0.7F;
+            }
+            if (this.hb.hovered && InputHelper.justClickedRight) {
+                locked = !locked;
+                if (locked) {
+                    this.bgColor.b = 0.6F;
+                } else {
+                    this.bgColor.b = 0.0F;
+                }
             }
             if (draggingMode && !InputHelper.isMouseDown) {
                 draggingMode = false;
@@ -107,7 +118,7 @@ public class MessageBox {
     }
 
     public void render(SpriteBatch sb) {
-        sb.setColor(Color.WHITE);
+        sb.setColor(this.bgColor);
         sb.draw(bg, x, y, Gdx.graphics.getWidth() * 0.2F, Gdx.graphics.getHeight() * 0.8F);
         synchronized (messages) {
             for (AbstractGameEffect effect : messages) {
@@ -120,6 +131,10 @@ public class MessageBox {
     }
 
     public void addDanmu(String username, String msg) {
+        addDanmu(username, msg, Color.WHITE.cpy());
+    }
+
+    public void addDanmu(String username, String msg, Color msgColor) {
         synchronized (messages) {
             String coloredUsername = username.replace(" ", " #b");
             if (!coloredUsername.startsWith("#b")) {
@@ -130,7 +145,7 @@ public class MessageBox {
                 @Override
                 public void update() {
                     if (duration == 0.5F) {
-                        MessageEffect messageEffect = new MessageEffect(finalName + " " + msg, BiliLiveDanmu.maxDanmuSize);
+                        MessageEffect messageEffect = new MessageEffect(finalName + " " + msg, BiliLiveDanmu.maxDanmuSize, msgColor);
                         messageEffect.x = MessageBox.this.x + Gdx.graphics.getWidth() * 0.01F;
                         messageEffect.y = MessageBox.this.y + Gdx.graphics.getHeight() * 0.02F;
                         messages.add(messageEffect);
