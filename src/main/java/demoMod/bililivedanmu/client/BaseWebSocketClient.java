@@ -86,14 +86,15 @@ public class BaseWebSocketClient extends WebSocketClient {
     public void onMessage(ByteBuffer bytes) {
         try {
             decode(bytes, result -> {
-                if ((int) result.get("op") == 5) {
-                    List<JSONObject> body = (List<JSONObject>) result.get("body");
-                    for (JSONObject jsonObject : body) {
-                        if (BiliLiveDanmu.printLog) {
-                            System.out.println(jsonObject);
-                        }
+                List<JSONObject> body = (List<JSONObject>) result.get("body");
+                for (JSONObject jsonObject : body) {
+                    if (BiliLiveDanmu.printLog) {
+                        System.out.println(result.get("op"));
+                        System.out.println(jsonObject);
+                    }
+                    if ((int) result.get("op") == 5) {
                         String cmd = jsonObject.getString("cmd");
-                        switch (cmd) {
+                        switch (cmd.split(":")[0]) {
                             case "DANMU_MSG":
                                 JSONArray jsonArray = jsonObject.getJSONArray("info");
                                 String extraString = jsonArray.getJSONArray(0).getJSONObject(15).getString("extra");
